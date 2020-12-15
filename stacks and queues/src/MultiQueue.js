@@ -10,10 +10,10 @@ class MultiQueue{
     }
 
     enqueue(person, qNum){
-        this.queueArr[qNum+1].enqueue(person)
+        this.queueArr[qNum-1].enqueue(person)
     }
     dequeue(qNum){
-        this.queueArr[qNum+1].dequeue()
+        this.queueArr[qNum-1].dequeue()
     }
     getLongestQueue(){
         let max = this.queueArr[0]
@@ -26,10 +26,27 @@ class MultiQueue{
         return min
     }
     balanceQueues(){
-        let min = this.getShortestQueue() , max = this.getLongestQueue()
-        const average = Math.floor((min.getLength() + max.getLength())/2) + 1
-        for(let i = 0 ; i < average - min.getLength() ; i++)
-            min.enqueue(...max.dequeue())
+        let average = 0
+        this.queueArr.forEach(queue => average += queue.getLength())
+        average = Math.floor(average / this.queueArr.length)
+
+        const helperContainer = new Queue()
+        //get excess items from the larger queues
+        this.queueArr.forEach(queue => {
+            const queueLenth = queue.getLength()
+            for(let i = 0 ; i < queueLenth - average ; i++)
+                helperContainer.enqueue(...queue.dequeue())
+        })
+
+        //disperse the excess from the helhelperContaier to the smaller queues 
+        this.queueArr.forEach(queue => {
+            const queueLenth = queue.getLength()
+            for(let i = 0 ; i < average - queueLenth; i++)
+                queue.enqueue(...helperContainer.dequeue())
+        })
+
+        if(helperContainer.getLength())
+            this.queueArr[0].enqueue(...helperContainer.dequeue())
     }
 }
 
@@ -37,8 +54,38 @@ class MultiQueue{
 
 
 
+let dq = new MultiQueue(3)
 
+//first set
+dq.enqueue(1, 1)
+dq.enqueue(1, 1)
+dq.enqueue(1, 1)
+dq.enqueue(2, 2)
+dq.enqueue(2, 2)
+dq.enqueue(2, 2)
+dq.enqueue(2, 2)
+dq.dequeue(1)
+dq.dequeue(1)
 
+console.log(dq.getLongestQueue()) //Queue { queue: [ 2, 2 ] }
+console.log(dq.getShortestQueue()) //Queue { queue: [ 1 ] }
+
+//second set
+dq.enqueue(1, 1)
+dq.enqueue(1, 1)
+dq.enqueue(1, 1)
+dq.enqueue(1, 1)
+dq.enqueue(1, 1)
+dq.enqueue(1, 1)
+
+console.log(dq.getLongestQueue()) //Queue { queue: [ 1, 1, 1, 1, 1, 1, 1 ] }
+console.log(dq.getShortestQueue()) //Queue { queue: [ 2, 2 ] }
+
+//balance queues
+dq.balanceQueues()
+// console.log(dq.getLongestQueue()) //Queue { queue: [ 1, 1, 1, 1, 1 ] }
+// console.log(dq.getShortestQueue()) //Queue { queue: [ 1, 1, 2, 2 ] }
+console.log(dq.queueArr)
 
 
 
